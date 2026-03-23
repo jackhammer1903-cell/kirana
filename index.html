@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kirana Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0a;
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+  }
+
+  /* ══ SIDENAV ══ */
+  .sidenav {
+    width: 58px;
+    background: #111;
+    border-right: 1px solid #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 4px;
+    position: fixed;
+    top: 0; left: 50%;
+    transform: translateX(-240px);
+    height: 100vh;
+    z-index: 10;
+  }
+
+  @media (max-width: 480px) {
+    .sidenav { left: 0; transform: none; }
+  }
+
+  .nav-logo {
+    color: #3ddc84; font-size: 18px; font-weight: 700;
+    margin-bottom: 12px; cursor: pointer; user-select: none;
+    background: none; border: none; font-family: 'Outfit', sans-serif;
+    padding: 6px; border-radius: 8px; -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+
+  .nav-btn {
+    width: 44px; height: 44px;
+    border: none; background: none; border-radius: 12px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; color: #444;
+    font-size: 8px; font-family: 'Outfit', sans-serif;
+    font-weight: 500; gap: 2px;
+    transition: all 0.18s; position: relative;
+  }
+
+  .nav-btn svg { width: 18px; height: 18px; }
+  .nav-btn:hover { background: #1a1a1a; color: #777; }
+  .nav-btn.active { background: #1a2e22; color: #3ddc84; }
+  .nav-btn.active svg { color: #3ddc84; }
+  .nav-btn.active::before {
+    content: '';
+    position: absolute; left: 0;
+    top: 50%; transform: translateY(-50%);
+    width: 3px; height: 20px;
+    background: #3ddc84; border-radius: 0 3px 3px 0;
+  }
+
+  .nav-divider { width: 28px; height: 1px; background: #1e1e1e; margin: 4px 0; }
+
+  /* ══ MAIN ══ */
+  .main {
+    flex: 1;
+    margin-left: 58px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-bottom: 20px;
+    overflow-y: auto;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 18px 16px 8px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    position: sticky; top: 0; background: #0a0a0a; z-index: 5;
+  }
+
+  .header-title { color: #fff; font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-title span { color: #3ddc84; }
+  .header-date { color: #444; font-size: 11px; margin-top: 2px; }
+
+  .net-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: #1a2e22; border: 1px solid #3ddc84;
+    border-radius: 10px; color: #3ddc84;
+    font-family: 'Outfit', sans-serif; font-size: 11px;
+    font-weight: 600; padding: 7px 11px; cursor: pointer;
+    white-space: nowrap; transition: background 0.15s;
+  }
+  .net-btn:active { background: #223d2c; }
+
+  /* ── Summary ── */
+  .summary {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; padding: 4px 12px 10px;
+  }
+
+  .sum-card {
+    background: #111; border-radius: 16px;
+    padding: 14px 12px; border: 1px solid #1e1e1e;
+  }
+
+  .sum-card .label {
+    color: #555; font-size: 10px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;
+  }
+
+  .sum-card .value {
+    color: #fff; font-size: 24px; font-weight: 300;
+    letter-spacing: -1px; line-height: 1;
+  }
+
+  .sum-card .rs { color: #3ddc84; font-size: 13px; margin-right: 1px; }
+  .sum-card.udhaar .value { color: #ff6b6b; }
+  .sum-card.udhaar .rs { color: #ff6b6b; }
+  .sum-card .sub { color: #444; font-size: 10px; margin-top: 4px; }
+
+  /* ── Top tabs ── */
+  .top-tabs {
+    display: flex; margin: 4px 12px 0;
+    background: #111; border-radius: 11px;
+    padding: 3px; border: 1px solid #1e1e1e;
+  }
+
+  .top-tab {
+    flex: 1; padding: 7px 4px;
+    border: none; background: none; color: #555;
+    font-family: 'Outfit', sans-serif; font-size: 12px;
+    font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+
+  .top-tab.active { background: #1e1e1e; color: #fff; }
+
+  /* ── Panels ── */
+  .panel { display: none; padding: 10px 12px 0; }
+  .panel.active { display: block; }
+
+  .section-title {
+    color: #444; font-size: 10px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  }
+
+  /* ── Analytics cards ── */
+  .analytics-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 12px;
+  }
+
+  .ana-card {
+    background: #111; border: 1px solid #1e1e1e;
+    border-radius: 12px; padding: 12px;
+  }
+
+  .ana-card .a-label { color: #555; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .ana-card .a-val   { color: #fff; font-size: 20px; font-weight: 300; letter-spacing: -0.5px; }
+  .ana-card .a-val .rs { color: #3ddc84; font-size: 11px; }
+
+  /* ── Udhaar items ── */
+  .udhaar-item {
+    background: #111; border: 1px solid #1e1e1e;
+    border-radius: 12px; padding: 10px 12px;
+    margin-bottom: 7px; animation: fadeUp 0.2s ease;
+  }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+
+  .u-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .u-name { color: #fff; font-size: 14px; font-weight: 500; }
+  .u-amt  { color: #ff6b6b; font-size: 17px; font-weight: 300; }
+  .u-amt .r { font-size: 10px; }
+
+  .u-actions { display: flex; gap: 6px; }
+
+  .u-btn {
+    flex: 1; border: 1px solid #252525; border-radius: 8px;
+    font-family: 'Outfit', sans-serif; font-size: 11px;
+    padding: 5px 8px; cursor: pointer; background: none;
+    transition: background 0.15s; text-align: center;
+  }
+
+  .u-btn.pay  { color: #3ddc84; border-color: #1e3d28; }
+  .u-btn.pay:active { background: #142a1c; }
+  .u-btn.hist { color: #888; }
+  .u-btn.hist:active { background: #1e1e1e; }
+
+  /* ── History ── */
+  .history-item {
+    display: flex; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid #161616; gap: 7px;
+  }
+
+  .hi-tag {
+    font-size: 9px; font-weight: 600; padding: 2px 6px;
+    border-radius: 5px; text-transform: uppercase; flex-shrink: 0;
+  }
+
+  .hi-tag.cash   { background: #142a1c; color: #3ddc84; }
+  .hi-tag.udhaar { background: #2a1414; color: #ff6b6b; }
+  .hi-name { color: #666; font-size: 12px; flex: 1; }
+  .hi-time { color: #333; font-size: 10px; flex-shrink: 0; }
+  .hi-amt  { color: #ccc; font-size: 13px; font-weight: 300; flex-shrink: 0; }
+
+  .empty-msg { color: #2a2a2a; font-size: 13px; text-align: center; padding: 24px 0; }
+
+  /* ══ CALC OVERLAY ══ */
+  .calc-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.22s;
+  }
+
+  .calc-overlay.open { opacity: 1; pointer-events: all; }
+
+  .calc-sheet {
+    width: 100%; max-width: 480px;
+    background: #0d0d0d;
+    border-radius: 20px 20px 0 0;
+    border: 1px solid #1e1e1e; border-bottom: none;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    height: 92dvh; max-height: 92dvh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .calc-overlay.open .calc-sheet { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 32px; height: 3px; background: #2a2a2a;
+    border-radius: 2px; margin: 8px auto 0; flex-shrink: 0;
+  }
+
+  .calc-mode-row {
+    display: flex; gap: 7px; padding: 6px 12px 0; flex-shrink: 0;
+  }
+
+  .mode-chip {
+    flex: 1; padding: 6px 4px;
+    border: 1px solid #1e1e1e; border-radius: 9px;
+    background: none; color: #555;
+    font-family: 'Outfit', sans-serif; font-size: 12px;
+    font-weight: 500; cursor: pointer; transition: all 0.18s;
+  }
+
+  .mode-chip.active     { background: #1a2e22; border-color: #3ddc84; color: #3ddc84; }
+  .mode-chip.uc.active  { background: #2a1414; border-color: #ff6b6b; color: #ff6b6b; }
+
+  .calc-customer { padding: 5px 12px 0; display: none; flex-shrink: 0; }
+  .calc-customer.visible { display: block; }
+
+  .calc-customer input {
+    width: 100%; background: #111; border: 1px solid #222;
+    border-radius: 9px; padding: 7px 12px; color: #fff;
+    font-family: 'Outfit', sans-serif; font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .calc-customer input::placeholder { color: #333; }
+  .calc-customer input:focus { border-color: #3ddc84; }
+
+  .calc-display {
+    padding: 4px 16px 0; text-align: right; flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: flex-end;
+  }
+
+  .calc-expr    { color: #333; font-size: 11px; font-weight: 300; min-height: 14px; word-break: break-all; }
+  .calc-preview { color: #3ddc84; font-size: 13px; font-weight: 300; min-height: 16px; opacity: 0; transition: opacity 0.15s; }
+  .calc-preview.show { opacity: 1; }
+
+  .calc-result {
+    color: #fff; font-size: 34px; font-weight: 300;
+    letter-spacing: -1px; line-height: 1; word-break: break-all;
+  }
+
+  .calc-result.small  { font-size: 26px; }
+  .calc-result.xsmall { font-size: 20px; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .cursor {
+    display: inline-block; width: 2px; height: 0.8em;
+    background: #3ddc84; vertical-align: middle;
+    margin-left: 2px; animation: blink 1s step-end infinite;
+  }
+
+  .calc-toolbar {
+    display: flex; justify-content: flex-end;
+    padding: 0 12px 1px; flex-shrink: 0;
+  }
+
+  .del-btn { background: none; border: none; color: #3ddc84; cursor: pointer; padding: 2px; }
+  .del-btn svg { width: 17px; height: 17px; }
+
+  /* ── Keypad — flexbox responsive ── */
+  .keypad {
+    flex: 1;
+    display: flex; flex-direction: column;
+    padding: 4px 10px 10px;
+    gap: 6px; min-height: 0; overflow: hidden;
+  }
+
+  .krow {
+    flex: 1;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 6px; min-height: 0;
+  }
+
+  .btn {
+    width: 100%; height: 100%; min-height: 48px;
+    border: none; border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(14px, 2.2vw + 6px, 19px);
+    font-weight: 500; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.08s, filter 0.08s;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+    aspect-ratio: unset;
+  }
+
+  .btn:active { transform: scale(0.96); filter: brightness(1.4); }
+  .btn-num { background: #1e1e1e; color: #fff; }
+  .btn-op  { background: #292929; color: #ccc; font-size: clamp(15px, 2.4vw + 7px, 21px); }
+  .btn-fn  { background: #161616; color: #777; font-size: clamp(12px, 1.8vw + 5px, 15px); }
+  .btn-eq  { background: #3ddc84; color: #000; font-size: clamp(16px, 2.4vw + 7px, 22px); font-weight: 700; }
+
+  /* ══ NET EARNING MODAL ══ */
+  .net-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.22s;
+  }
+
+  .net-modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .net-modal {
+    background: #111; border: 1px solid #1e1e1e;
+    border-radius: 20px; padding: 26px 22px;
+    width: 88%; max-width: 320px;
+    transform: scale(0.92);
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    text-align: center;
+  }
+
+  .net-modal-overlay.open .net-modal { transform: scale(1); }
+
+  .net-modal-title {
+    color: #555; font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;
+  }
+
+  .net-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid #1a1a1a;
+  }
+
+  .net-row:last-of-type { border-bottom: none; }
+  .net-row .nr-label { color: #666; font-size: 13px; }
+  .net-row .nr-val   { font-size: 18px; font-weight: 300; }
+  .net-row .nr-val.green { color: #3ddc84; }
+  .net-row .nr-val.red   { color: #ff6b6b; }
+
+  .net-divider { height: 1px; background: #2a2a2a; margin: 6px 0; }
+  .net-total-label { color: #888; font-size: 12px; margin-top: 14px; margin-bottom: 4px; }
+
+  .net-total-value {
+    font-size: 38px; font-weight: 300; letter-spacing: -2px; line-height: 1;
+  }
+
+  .net-total-value.positive { color: #3ddc84; }
+  .net-total-value.negative { color: #ff6b6b; }
+
+  .net-close {
+    margin-top: 18px; width: 100%;
+    background: #1e1e1e; border: none; border-radius: 10px;
+    color: #fff; font-family: 'Outfit', sans-serif;
+    font-size: 14px; font-weight: 500; padding: 11px;
+    cursor: pointer; transition: background 0.15s;
+  }
+
+  .net-close:active { background: #2a2a2a; }
+
+  /* ══ HISTORY MODAL (customer) ══ */
+  .hist-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    z-index: 201;
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.22s;
+  }
+
+  .hist-modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .hist-modal {
+    background: #111; border: 1px solid #1e1e1e;
+    border-radius: 20px 20px 0 0; padding: 20px 18px;
+    width: 100%; max-width: 480px; max-height: 70vh; overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.26s cubic-bezier(0.32,0.72,0,1);
+  }
+
+  .hist-modal-overlay.open .hist-modal { transform: translateY(0); }
+
+  .hist-modal-title { color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+
+  .hm-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid #1a1a1a;
+    font-size: 13px;
+  }
+
+  .hm-type { color: #888; }
+  .hm-type.borrow { color: #ff6b6b; }
+  .hm-type.paid   { color: #3ddc84; }
+  .hm-date { color: #444; font-size: 11px; }
+  .hm-amt  { color: #fff; }
+
+  .hist-close {
+    margin-top: 14px; width: 100%;
+    background: #1e1e1e; border: none; border-radius: 10px;
+    color: #fff; font-family: 'Outfit', sans-serif;
+    font-size: 14px; padding: 10px; cursor: pointer;
+  }
+
+  /* ══ TRIAL BANNER ══ */
+  .trial-banner {
+    background: #1a1a00; border: 1px solid #555500;
+    border-radius: 10px; margin: 0 12px 8px;
+    padding: 8px 12px; font-size: 11px; color: #aaa;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .trial-banner.expired { background: #1a0000; border-color: #550000; }
+
+  /* ══ LOCK SCREEN ══ */
+  .lock-screen {
+    position: fixed; inset: 0; background: #000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 999; text-align: center; padding: 24px;
+  }
+
+  .lock-screen h2 { color: #ff6b6b; font-size: 22px; margin-bottom: 10px; }
+  .lock-screen p  { color: #666; font-size: 14px; line-height: 1.6; }
+  .lock-screen .price {
+    margin-top: 20px; background: #3ddc84; color: #000;
+    border: none; border-radius: 12px; padding: 12px 28px;
+    font-size: 15px; font-weight: 600; font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div class="lock-screen" id="lockScreen" style="display:none">
+  <h2>Trial Expired</h2>
+  <p>Your 7-day free trial has ended.<br>Upgrade to keep using Kirana.</p>
+  <button class="price">₹299/month &nbsp;·&nbsp; ₹10/day</button>
+</div>
+
+<div class="app">
+
+  <!-- SIDENAV -->
+  <nav class="sidenav">
+    <button class="nav-logo"
+      onmousedown="startHold(event)" onmouseup="endHold()"
+      onmouseleave="endHold()"
+      ontouchstart="startHold(event)" ontouchend="endHold()"
+      ontouchcancel="endHold()"
+      title="Hold for owner panel">K</button>
+
+    <button class="nav-btn active" onclick="showPanel('home')" id="nav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+        <path d="M9 21V12h6v9"/>
+      </svg>
+      Home
+    </button>
+
+    <div class="nav-divider"></div>
+
+    <button class="nav-btn" onclick="openCalc()" id="nav-calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="4" y="2" width="16" height="20" rx="3"/>
+        <line x1="8" y1="7" x2="16" y2="7"/>
+        <line x1="8" y1="12" x2="10" y2="12"/>
+        <line x1="14" y1="12" x2="16" y2="12"/>
+        <line x1="8" y1="17" x2="10" y2="17"/>
+        <line x1="14" y1="17" x2="16" y2="17"/>
+      </svg>
+      Calc
+    </button>
+
+    <div class="nav-divider"></div>
+
+    <button class="nav-btn" onclick="showPanel('analytics')" id="nav-analytics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Stats
+    </button>
+
+    <button class="nav-btn" onclick="showPanel('udhaar')" id="nav-udhaar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
+      Udhaar
+    </button>
+
+    <button class="nav-btn" onclick="showPanel('history')" id="nav-history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12,7 12,12 15,15"/>
+      </svg>
+      Log
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="header">
+      <div>
+        <div class="header-title">Kirana<span>.</span></div>
+        <div class="header-date" id="dateLabel"></div>
+      </div>
+      <button class="net-btn" onclick="showNetEarning()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+          <polyline points="17 6 23 6 23 12"/>
+        </svg>
+        Net Earning
+      </button>
+    </div>
+
+    <!-- Trial banner -->
+    <div class="trial-banner" id="trialBanner"></div>
+
+    <!-- Summary always visible -->
+    <div class="summary">
+      <div class="sum-card">
+        <div class="label">Today's Sales</div>
+        <div class="value"><span class="rs">₹</span><span id="totalSalesDisplay">0</span></div>
+        <div class="sub" id="cashCount">0 entries</div>
+      </div>
+      <div class="sum-card udhaar">
+        <div class="label">Total Udhaar</div>
+        <div class="value"><span class="rs">₹</span><span id="totalUdhaarDisplay">0</span></div>
+        <div class="sub" id="udhaarCount">0 customers</div>
+      </div>
+    </div>
+
+    <!-- Top tabs -->
+    <div class="top-tabs" id="topTabs" style="display:none">
+      <button class="top-tab" onclick="showPanel('analytics')" id="ttab-analytics">📊 Stats</button>
+      <button class="top-tab" onclick="showPanel('udhaar')"   id="ttab-udhaar">📋 Udhaar</button>
+      <button class="top-tab" onclick="showPanel('history')"  id="ttab-history">🕐 Log</button>
+    </div>
+
+    <!-- Home -->
+    <div class="panel active" id="panel-home">
+      <div style="padding:28px 0;text-align:center">
+        <div style="color:#222;font-size:12px;margin-bottom:8px">Tap Calc to add a sale or udhaar</div>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.5">
+          <rect x="4" y="2" width="16" height="20" rx="3"/>
+          <line x1="8" y1="7" x2="16" y2="7"/>
+          <line x1="8" y1="12" x2="10" y2="12"/>
+          <line x1="14" y1="12" x2="16" y2="12"/>
+          <line x1="8" y1="17" x2="10" y2="17"/>
+          <line x1="14" y1="17" x2="16" y2="17"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="panel" id="panel-analytics">
+      <div class="section-title">Sales Overview</div>
+      <div class="analytics-grid">
+        <div class="ana-card">
+          <div class="a-label">Today</div>
+          <div class="a-val"><span class="rs">₹</span><span id="ana-day">0</span></div>
+        </div>
+        <div class="ana-card">
+          <div class="a-label">This Week</div>
+          <div class="a-val"><span class="rs">₹</span><span id="ana-week">0</span></div>
+        </div>
+        <div class="ana-card">
+          <div class="a-label">This Month</div>
+          <div class="a-val"><span class="rs">₹</span><span id="ana-month">0</span></div>
+        </div>
+        <div class="ana-card">
+          <div class="a-label">This Year</div>
+          <div class="a-val"><span class="rs">₹</span><span id="ana-year">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Udhaar -->
+    <div class="panel" id="panel-udhaar">
+      <div class="section-title">Pending Udhaar</div>
+      <div id="udhaarList"></div>
+    </div>
+
+    <!-- History -->
+    <div class="panel" id="panel-history">
+      <div class="section-title">Today's Entries</div>
+      <div id="historyList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CALC OVERLAY -->
+<div class="calc-overlay" id="calcOverlay" onclick="handleOverlayClick(event)">
+  <div class="calc-sheet">
+
+    <div class="sheet-handle"></div>
+
+    <div class="calc-mode-row">
+      <button class="mode-chip active" onclick="setCalcMode('cash')" id="chip-cash">💵 Cash Sale</button>
+      <button class="mode-chip uc" onclick="setCalcMode('udhaar')" id="chip-udhaar">📋 Udhaar</button>
+    </div>
+
+    <div class="calc-customer" id="calcCustomer">
+      <input type="text" id="customerName" placeholder="Customer name">
+    </div>
+
+    <div class="calc-display">
+      <div class="calc-expr" id="calcExpr"></div>
+      <div class="calc-preview" id="calcPreview"></div>
+      <div class="calc-result" id="calcResult">0<span class="cursor"></span></div>
+    </div>
+
+    <div class="calc-toolbar">
+      <button class="del-btn" onclick="deleteLast()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+          <line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="keypad">
+      <div class="krow">
+        <button class="btn btn-fn" onclick="clearCalc()">C</button>
+        <button class="btn btn-fn" onclick="inputText('()')">( )</button>
+        <button class="btn btn-op" onclick="inputText('%')">%</button>
+        <button class="btn btn-op" onclick="inputText('/')">÷</button>
+      </div>
+      <div class="krow">
+        <button class="btn btn-num" onclick="inputDigit('7')">7</button>
+        <button class="btn btn-num" onclick="inputDigit('8')">8</button>
+        <button class="btn btn-num" onclick="inputDigit('9')">9</button>
+        <button class="btn btn-op" onclick="inputText('*')">×</button>
+      </div>
+      <div class="krow">
+        <button class="btn btn-num" onclick="inputDigit('4')">4</button>
+        <button class="btn btn-num" onclick="inputDigit('5')">5</button>
+        <button class="btn btn-num" onclick="inputDigit('6')">6</button>
+        <button class="btn btn-op" onclick="inputText('-')">−</button>
+      </div>
+      <div class="krow">
+        <button class="btn btn-num" onclick="inputDigit('1')">1</button>
+        <button class="btn btn-num" onclick="inputDigit('2')">2</button>
+        <button class="btn btn-num" onclick="inputDigit('3')">3</button>
+        <button class="btn btn-op" onclick="inputText('+')">+</button>
+      </div>
+      <div class="krow">
+        <button class="btn btn-fn" onclick="toggleSign()">+/−</button>
+        <button class="btn btn-num" onclick="inputDigit('0')">0</button>
+        <button class="btn btn-num" onclick="inputDot()">.</button>
+        <button class="btn btn-eq" onclick="addEntry()">=</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- NET EARNING MODAL -->
+<div class="net-modal-overlay" id="netModalOverlay" onclick="handleNetOverlay(event)">
+  <div class="net-modal">
+    <div class="net-modal-title">Today's Summary</div>
+    <div class="net-row">
+      <span class="nr-label">Total Sales</span>
+      <span class="nr-val green">₹<span id="nm-sales">0</span></span>
+    </div>
+    <div class="net-row">
+      <span class="nr-label">Total Udhaar</span>
+      <span class="nr-val red">− ₹<span id="nm-udhaar">0</span></span>
+    </div>
+    <div class="net-divider"></div>
+    <div class="net-total-label">Net in Hand</div>
+    <div class="net-total-value" id="nm-net">₹0</div>
+    <button class="net-close" onclick="closeNetEarning()">Done</button>
+  </div>
+</div>
+
+<!-- CUSTOMER HISTORY MODAL -->
+<div class="hist-modal-overlay" id="histModalOverlay" onclick="handleHistOverlay(event)">
+  <div class="hist-modal">
+    <div class="hist-modal-title" id="histModalName"></div>
+    <div id="histModalContent"></div>
+    <button class="hist-close" onclick="closeHistModal()">Close</button>
+  </div>
+</div>
+
+<script>
+  // ══ TRIAL ══
+  let trial = JSON.parse(localStorage.getItem('kiranaTrial')) || { start: Date.now() };
+  localStorage.setItem('kiranaTrial', JSON.stringify(trial));
+
+  function daysLeft() {
+    return 7 - Math.floor((Date.now() - trial.start) / 86400000);
+  }
+
+  if (daysLeft() <= 0) {
+    document.getElementById('lockScreen').style.display = 'flex';
+  } else {
+    let d = daysLeft();
+    let b = document.getElementById('trialBanner');
+    b.textContent = `⏳ Free trial: ${d} day${d===1?'':'s'} left`;
+    if (d <= 2) b.classList.add('expired');
+  }
+
+  // ══ DATA ══
+  let data = JSON.parse(localStorage.getItem('kiranaData5')) || {
+    sales: [],          // [{ amount, date }]
+    customers: {},      // { name: { total, history: [{type,amount,date}] } }
+    history: []         // [{ type, name, amount, time }]
+  };
+
+  function save() { localStorage.setItem('kiranaData5', JSON.stringify(data)); }
+
+  // Daily reset of sales array (keeps customers/udhaar)
+  function resetCheck() {
+    // No auto-reset needed — analytics filtered by date
+  }
+
+  // ══ DATE ══
+  document.getElementById('dateLabel').textContent =
+    new Date().toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
+
+  // ══ PANEL SWITCHING ══
+  let currentPanel = 'home';
+
+  function showPanel(name) {
+    currentPanel = name;
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    ['home','analytics','udhaar','history'].forEach(n => {
+      const el = document.getElementById('nav-' + n);
+      if (el) el.classList.toggle('active', n === name);
+    });
+    document.getElementById('nav-calc').classList.remove('active');
+
+    const showTabs = ['analytics','udhaar','history'].includes(name);
+    document.getElementById('topTabs').style.display = showTabs ? 'flex' : 'none';
+    if (showTabs) {
+      ['analytics','udhaar','history'].forEach(n => {
+        const el = document.getElementById('ttab-' + n);
+        if (el) el.classList.toggle('active', n === name);
+      });
+    }
+
+    if (name === 'analytics') renderAnalytics();
+    if (name === 'udhaar')    renderUdhaar();
+    if (name === 'history')   renderHistory();
+  }
+
+  // ══ CALC ══
+  let expr = '';
+  let calcMode = 'cash';
+
+  function openCalc() {
+    document.getElementById('calcOverlay').classList.add('open');
+    document.getElementById('nav-calc').classList.add('active');
+    ['home','analytics','udhaar','history'].forEach(n => {
+      const el = document.getElementById('nav-' + n);
+      if (el) el.classList.remove('active');
+    });
+    clearCalc();
+  }
+
+  function closeCalc() {
+    document.getElementById('calcOverlay').classList.remove('open');
+    document.getElementById('nav-calc').classList.remove('active');
+    const el = document.getElementById('nav-' + currentPanel);
+    if (el) el.classList.add('active');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('calcOverlay')) closeCalc();
+  }
+
+  function setCalcMode(mode) {
+    calcMode = mode;
+    document.getElementById('chip-cash').classList.toggle('active', mode === 'cash');
+    document.getElementById('chip-udhaar').classList.toggle('active', mode === 'udhaar');
+    document.getElementById('calcCustomer').classList.toggle('visible', mode === 'udhaar');
+    clearCalc();
+  }
+
+  function evalSafe(e) {
+    try {
+      let s = e.replace(/÷/g,'/').replace(/×/g,'*').replace(/%/g,'/100');
+      let r = Function('"use strict"; return (' + s + ')')();
+      return (typeof r === 'number' && isFinite(r)) ? parseFloat(r.toPrecision(12)) : null;
+    } catch { return null; }
+  }
+
+  function updateDisplay() {
+    const resEl = document.getElementById('calcResult');
+    const preEl = document.getElementById('calcPreview');
+    let pretty = (expr || '0').replace(/\*/g,'×').replace(/\//g,'÷');
+    resEl.innerHTML = pretty + '<span class="cursor"></span>';
+    resEl.className = 'calc-result';
+    if (pretty.length > 12) resEl.classList.add('xsmall');
+    else if (pretty.length > 8) resEl.classList.add('small');
+
+    if (expr && /[+\-*\/%]/.test(expr)) {
+      let p = evalSafe(expr);
+      if (p !== null && String(p) !== expr) {
+        preEl.textContent = '≈ ₹' + fmt(p);
+        preEl.classList.add('show');
+      } else {
+        preEl.textContent = ''; preEl.classList.remove('show');
+      }
+    } else {
+      preEl.textContent = ''; preEl.classList.remove('show');
+    }
+  }
+
+  function inputDigit(d) { expr += d; updateDisplay(); }
+
+  function inputText(t) {
+    if (t === '()') {
+      let op = (expr.match(/\(/g)||[]).length;
+      let cl = (expr.match(/\)/g)||[]).length;
+      t = op > cl ? ')' : '(';
+    }
+    expr += t; updateDisplay();
+  }
+
+  function inputDot() {
+    let parts = expr.split(/[+\-*\/%()]/);
+    let last = parts[parts.length-1];
+    if (last.includes('.')) return;
+    if (!last) expr += '0';
+    expr += '.'; updateDisplay();
+  }
+
+  function toggleSign() {
+    if (!expr) return;
+    expr = expr.startsWith('-') ? expr.slice(1) : '-' + expr;
+    updateDisplay();
+  }
+
+  function deleteLast() { expr = expr.slice(0,-1); updateDisplay(); }
+
+  function clearCalc() {
+    expr = '';
+    document.getElementById('calcExpr').textContent = '';
+    document.getElementById('calcPreview').textContent = '';
+    document.getElementById('calcPreview').classList.remove('show');
+    updateDisplay();
+  }
+
+  function addEntry() {
+    let amount = evalSafe(expr);
+    if (!amount || amount <= 0) { flashError('Invalid amount'); return; }
+    document.getElementById('calcExpr').textContent =
+      expr.replace(/\*/g,'×').replace(/\//g,'÷') + ' =';
+
+    if (calcMode === 'udhaar') {
+      let name = document.getElementById('customerName').value.trim();
+      if (!name) { flashError('Enter name'); return; }
+      if (!data.customers[name]) data.customers[name] = { total: 0, history: [] };
+      data.customers[name].total = parseFloat((data.customers[name].total + amount).toPrecision(12));
+      data.customers[name].history.push({ type:'borrow', amount, date: Date.now() });
+      data.history.unshift({ type:'udhaar', name, amount, time: timeNow() });
+      document.getElementById('customerName').value = '';
+    } else {
+      data.sales.push({ amount, date: Date.now() });
+      data.history.unshift({ type:'cash', name:'Cash', amount, time: timeNow() });
+    }
+
+    save(); updateSummary();
+    expr = String(amount);
+    document.getElementById('calcPreview').textContent = '';
+    document.getElementById('calcPreview').classList.remove('show');
+    updateDisplay();
+    setTimeout(() => { closeCalc(); clearCalc(); }, 650);
+  }
+
+  function flashError(msg) {
+    const el = document.getElementById('calcResult');
+    el.innerHTML = msg; el.className = 'calc-result xsmall';
+    setTimeout(() => { expr = ''; updateDisplay(); }, 1300);
+  }
+
+  // ══ REPAY ══
+  function repay(name) {
+    let amtStr = prompt('How much did ' + name + ' pay?');
+    if (!amtStr) return;
+    let amt = parseFloat(amtStr);
+    if (!amt || amt <= 0) return;
+    let c = data.customers[name];
+    c.total = Math.max(0, parseFloat((c.total - amt).toPrecision(12)));
+    c.history.push({ type:'paid', amount: amt, date: Date.now() });
+    data.history.unshift({ type:'cash', name: name + ' (repaid)', amount: amt, time: timeNow() });
+    save(); updateSummary(); renderUdhaar();
+  }
+
+  // ══ CUSTOMER HISTORY ══
+  function viewHistory(name) {
+    let c = data.customers[name];
+    document.getElementById('histModalName').textContent = name;
+    document.getElementById('histModalContent').innerHTML =
+      c.history.slice().reverse().map(h => `
+        <div class="hm-row">
+          <span class="hm-type ${h.type}">${h.type === 'borrow' ? 'Udhaar' : 'Paid'}</span>
+          <span class="hm-date">${new Date(h.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+          <span class="hm-amt">₹${fmt(h.amount)}</span>
+        </div>`).join('') || '<div class="empty-msg">No history</div>';
+    document.getElementById('histModalOverlay').classList.add('open');
+  }
+
+  function closeHistModal() {
+    document.getElementById('histModalOverlay').classList.remove('open');
+  }
+
+  function handleHistOverlay(e) {
+    if (e.target === document.getElementById('histModalOverlay')) closeHistModal();
+  }
+
+  // ══ ANALYTICS ══
+  function sumRange(range) {
+    let now = Date.now();
+    return data.sales.filter(s => {
+      let d = now - s.date;
+      if (range === 'day')   return d < 86400000;
+      if (range === 'week')  return d < 7 * 86400000;
+      if (range === 'month') return d < 30 * 86400000;
+      if (range === 'year')  return d < 365 * 86400000;
+    }).reduce((a,b) => a + b.amount, 0);
+  }
+
+  function renderAnalytics() {
+    document.getElementById('ana-day').textContent   = fmt(sumRange('day'));
+    document.getElementById('ana-week').textContent  = fmt(sumRange('week'));
+    document.getElementById('ana-month').textContent = fmt(sumRange('month'));
+    document.getElementById('ana-year').textContent  = fmt(sumRange('year'));
+  }
+
+  // ══ RENDER ══
+  function updateSummary() {
+    let todaySales = sumRange('day');
+    document.getElementById('totalSalesDisplay').textContent = fmt(todaySales);
+    let uTotal = Object.values(data.customers).reduce((a,b)=>a+b.total, 0);
+    document.getElementById('totalUdhaarDisplay').textContent = fmt(uTotal);
+    let cc = data.sales.filter(s => Date.now()-s.date < 86400000).length;
+    let uc = Object.keys(data.customers).filter(k=>data.customers[k].total>0).length;
+    document.getElementById('cashCount').textContent = cc + ' entr' + (cc===1?'y':'ies');
+    document.getElementById('udhaarCount').textContent = uc + ' customer' + (uc===1?'':'s');
+  }
+
+  function renderUdhaar() {
+    let el = document.getElementById('udhaarList');
+    let entries = Object.entries(data.customers).filter(([,v])=>v.total>0);
+    if (!entries.length) { el.innerHTML='<div class="empty-msg">No pending udhaar 🎉</div>'; return; }
+    el.innerHTML = entries.map(([name,c]) => `
+      <div class="udhaar-item">
+        <div class="u-top">
+          <div class="u-name">${name}</div>
+          <div class="u-amt"><span class="r">₹</span>${fmt(c.total)}</div>
+        </div>
+        <div class="u-actions">
+          <button class="u-btn pay" onclick="repay('${name}')">✓ Mark Paid</button>
+          <button class="u-btn hist" onclick="viewHistory('${name}')">View History</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderHistory() {
+    let el = document.getElementById('historyList');
+    if (!data.history.length) { el.innerHTML='<div class="empty-msg">No entries yet</div>'; return; }
+    el.innerHTML = data.history.slice(0,60).map(h=>`
+      <div class="history-item">
+        <span class="hi-tag ${h.type}">${h.type}</span>
+        <span class="hi-name">${h.name}</span>
+        <span class="hi-time">${h.time}</span>
+        <span class="hi-amt">₹${fmt(h.amount)}</span>
+      </div>`).join('');
+  }
+
+  // ══ NET EARNING ══
+  function showNetEarning() {
+    let sales = sumRange('day');
+    let udhaar = Object.values(data.customers).reduce((a,b)=>a+b.total, 0);
+    let net = sales - udhaar;
+    document.getElementById('nm-sales').textContent = fmt(sales);
+    document.getElementById('nm-udhaar').textContent = fmt(udhaar);
+    let netEl = document.getElementById('nm-net');
+    netEl.textContent = (net < 0 ? '−' : '') + '₹' + fmt(Math.abs(net));
+    netEl.className = 'net-total-value ' + (net >= 0 ? 'positive' : 'negative');
+    document.getElementById('netModalOverlay').classList.add('open');
+  }
+
+  function closeNetEarning() {
+    document.getElementById('netModalOverlay').classList.remove('open');
+  }
+
+  function handleNetOverlay(e) {
+    if (e.target === document.getElementById('netModalOverlay')) closeNetEarning();
+  }
+
+  // ══ OWNER PANEL (hold logo) ══
+  let holdTimer;
+  function startHold(e) {
+    if (e) e.preventDefault();
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(showOwnerPanel, 1200);
+  }
+  function endHold() { clearTimeout(holdTimer); }
+
+  function showOwnerPanel() {
+    let ud = Object.values(data.customers).reduce((a,b)=>a+b.total, 0);
+    alert(
+`👑 OWNER PANEL
+
+Today    ₹${fmt(sumRange('day'))}
+Week     ₹${fmt(sumRange('week'))}
+Month    ₹${fmt(sumRange('month'))}
+Year     ₹${fmt(sumRange('year'))}
+
+Udhaar   ₹${fmt(ud)}
+Trial    ${daysLeft()} days left`
+    );
+  }
+
+  // ══ KEYBOARD ══
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('calcOverlay').classList.contains('open')) return;
+    if (document.activeElement === document.getElementById('customerName')) return;
+    if (e.key>='0'&&e.key<='9') inputDigit(e.key);
+    else if (e.key==='+') inputText('+');
+    else if (e.key==='-') inputText('-');
+    else if (e.key==='*') inputText('*');
+    else if (e.key==='/') { e.preventDefault(); inputText('/'); }
+    else if (e.key==='%') inputText('%');
+    else if (e.key==='.') inputDot();
+    else if (e.key==='Enter'||e.key==='=') addEntry();
+    else if (e.key==='Backspace') deleteLast();
+    else if (e.key==='Escape') closeCalc();
+  });
+
+  // ══ HELPERS ══
+  function fmt(n) { return Number(n).toLocaleString('en-IN'); }
+  function timeNow() { return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+
+  // ══ INIT ══
+  updateSummary();
+</script>
+</body>
+</html>
